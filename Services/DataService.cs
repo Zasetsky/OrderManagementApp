@@ -237,15 +237,22 @@ namespace OrderManagementApp.Services
         }
 
         // Метод для получения золотого клиента
-        public Client? GetGoldenClient(int year, int month)
+        public Client? GetGoldenClient(int year, int? month)
         {
             var filteredOrders = Orders.Where(o =>
-                o.OrderDate.Year == year && o.OrderDate.Month == month
+                o.OrderDate.Year == year && (!month.HasValue || o.OrderDate.Month == month.Value)
             );
+
             var grouped = filteredOrders
                 .GroupBy(o => o.ClientCode)
-                .Select(g => new { ClientCode = g.Key, OrderCount = g.Count() })
+                .Select(g => new
+                {
+                    ClientCode = g.Key,
+                    OrderCount = g.Count(),
+                    TotalQuantity = g.Sum(o => o.Quantity),
+                })
                 .OrderByDescending(g => g.OrderCount)
+                .ThenByDescending(g => g.TotalQuantity)
                 .FirstOrDefault();
 
             if (grouped != null)

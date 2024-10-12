@@ -89,8 +89,8 @@ namespace OrderManagementApp
 
                 // Заголовки столбцов
                 Console.WriteLine(
-                    "{0,-12} {1,-30} {2,-10} {3,-15} {4,-15}",
-                    "Код клиента",
+                    "{0,-30} {1,-25} {2,-10} {3,-15} {4,-15}",
+                    "ФИО клиента",
                     "Наименование организации",
                     "Количество",
                     "Цена за единицу",
@@ -102,13 +102,16 @@ namespace OrderManagementApp
                     var client = dataService.Clients.FirstOrDefault(c =>
                         c.ClientCode == order.ClientCode
                     );
+
+                    string clientName =
+                        client != null ? client.ContactPerson : "Неизвестный клиент";
                     string organizationName =
-                        client != null ? client.OrganizationName : "Неизвестный клиент";
+                        client != null ? client.OrganizationName : "Неизвестная организация";
 
                     // Форматированный вывод данных
                     Console.WriteLine(
-                        "{0,-12} {1,-30} {2,-10} {3,-15:C2} {4,-15}",
-                        order.ClientCode,
+                        "{0,-30} {1,-25} {2,-10} {3,-15} {4,-15}",
+                        clientName,
                         organizationName,
                         order.Quantity,
                         price,
@@ -161,20 +164,38 @@ namespace OrderManagementApp
                 return;
             }
 
-            Console.Write("Введите месяц (1-12): ");
-            string? monthInput = Console.ReadLine();
-            if (!int.TryParse(monthInput, out int month) || month < 1 || month > 12)
+            Console.Write("Вы хотите указать месяц? (y/n): ");
+            string? monthChoice = Console.ReadLine();
+            int? month = null;
+
+            if (monthChoice?.Trim().ToLower() == "y")
             {
-                Console.WriteLine("Некорректный ввод месяца.");
-                return;
+                Console.Write("Введите месяц (1-12): ");
+                string? monthInput = Console.ReadLine();
+                if (
+                    !int.TryParse(monthInput, out int parsedMonth)
+                    || parsedMonth < 1
+                    || parsedMonth > 12
+                )
+                {
+                    Console.WriteLine("Некорректный ввод месяца.");
+                    return;
+                }
+                month = parsedMonth;
             }
 
             var goldenClient = dataService.GetGoldenClient(year, month);
             if (goldenClient != null)
             {
-                Console.WriteLine(
-                    $"\nЗолотой клиент за {month}/{year}: {goldenClient.OrganizationName}"
-                );
+                if (month.HasValue)
+                    Console.WriteLine(
+                        $"\nЗолотой клиент за {month}/{year}: {goldenClient.OrganizationName}"
+                    );
+                else
+                    Console.WriteLine(
+                        $"\nЗолотой клиент за {year}: {goldenClient.OrganizationName}"
+                    );
+
                 Console.WriteLine($"Контактное лицо: {goldenClient.ContactPerson}");
             }
             else
