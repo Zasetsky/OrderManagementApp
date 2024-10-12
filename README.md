@@ -19,6 +19,8 @@
    ```
 3. Постройте и запустите проект:
    ```bash
+   dotnet restore
+
    dotnet build
    dotnet run
    ```
